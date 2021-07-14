@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>销售记录</title>
+		<link rel="stylesheet" type="text/css" href="lib/bootstrap/css/bootstrap.css" />
+		<link rel="stylesheet" type="text/css" href="lib/bootstrap/css/bootstrap-table.min.css" />
+		<script src="js/jquery-3.4.1.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/bootstrap/js/bootstrap.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/bootstrap/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/bootstrap/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/bootstrap/js/bootstrap.bundle.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			$(function(){
+				/* 显示数据、模糊查询 */
+				$("#sale_table").bootstrapTable({
+					url: "../sale/queryAll",
+					pagination: true,
+					pageSize: 5,
+					striped: true,
+					//client:客户端分页
+					sidePagination: 'client',
+					height: 400,
+					
+					columns: [{
+						// 映射json对象里的属性
+						field: 'sid',
+						// 文字居中
+						align: 'center',
+						// 列标题
+						title: '记录编号'
+					}, {
+						field: 'pid',
+						align: 'center',
+						title: '商品编号'
+					}, {
+						field: 'uid',
+						align: 'center',
+						title: '销售员编号'
+					}, {
+						field: 'count',
+						align: 'center',
+						title: '销售数量'
+					}, {
+						field: 'totalprice',
+						align: 'center',
+						title: '销售总价'
+					}, {
+						field: 'saledate',
+						align: 'center',
+						title: '销售日期',
+						formatter: function(value, row, index) { //自定义组件
+							// value 当前列的值
+							// row  整行数据
+							//index 行的下标
+							//return 本列需要显示的内容
+							return timestampToTime(value);
+						}
+					}, {
+						// 映射json对象里的属性
+						field: 'eid',
+						// 文字居中
+						align: 'center',
+						// 列标题
+						title: '操作',
+						formatter: function(value, row, index) { //自定义组件
+							// value 当前列的值
+							// row  整行数据
+							//index 行的下标
+							//return 本列需要显示的内容
+							return '<button type="button" class="btn btn-outline-primary btn-sm" onclick="updateProduct('+row.sid+')">修改</button>&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-outline-danger btn-sm" onclick="delProduct('+row.sid+')" >删除</button>'
+						}
+					}]
+				})
+			})
+			
+			//前后端时间转换
+			function timestampToTime(timestamp) {	
+				var date =  new Date(timestamp);
+				var y = 1900+date.getYear();
+				var m = "0"+(date.getMonth()+1);
+				var d = "0"+date.getDate();
+				
+				var h=date.getHours();
+				var min=date.getMinutes();
+				var s=date.getSeconds();
+				return y+"-"+m.substring(m.length-2,m.length)+"-"+d.substring(d.length-2,d.length)+" "+h+":"+min+":"+s;
+			}
+			
+			//删除商品
+			function delProduct(sid) {
+			    var isDel = confirm("确定删除吗？");
+			    if (isDel == true) {
+			        $.ajax({
+			            type: "post",
+			            url: "../sale/deleteById?sid=" + sid,
+			            dataType: "json",
+			            success: function (data) {
+							if(data!=null){
+								$("#sale_table").bootstrapTable('refresh');
+								alert("删除成功");
+							}else{
+								alert("删除失败");
+							}
+							
+			            }
+			        });
+			    }
+			}
+			
+			//销售记录柱状图
+			function saleChart(){
+				location.replace("chart.html");
+				//location.href="chart.html";
+				//window.open("chart.html");
+			}
+		</script>
+	</head>
+	<body>
+<!--		&lt;!&ndash; 排序方式 &ndash;&gt;-->
+<!--		<div class="dropdown">-->
+<!--		  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-expanded="false">-->
+<!--		    请选择排序方式-->
+<!--		  </button>-->
+<!--		  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">-->
+<!--		    <a class="dropdown-item" href="#">销售时间</a>-->
+<!--		    <a class="dropdown-item" href="#">销售个数</a>-->
+<!--		  </div>-->
+<!--		</div>-->
+		
+<!-- 		<select id="sel">
+			<option value="0">请选择排序方式</option>
+			<option value="时间">销售时间</option>
+			<option value="个数">销售个数</option>
+		</select> -->
+<!--		&lt;!&ndash; 商品入库 &ndash;&gt;-->
+<!--		<p align="right">-->
+<!--			<button type="button" id="chart_btn" class="btn btn-primary btn-smu" onclick="saleChart()" >生成销售记录柱状图</button>-->
+<!--		</p>-->
+		<!-- 展示商品 -->
+		<div class="container">
+			<table id="sale_table"></table>
+		</div>
+	</body>
+</html>
