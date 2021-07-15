@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Order Form</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="text/javascript" src="js/myjs.js"></script>
+	<script type="text/javascript">
+
+
+function sendFormByJson(){
+	var name = document.getElementById("name").value;
+	var pass = document.getElementById("pass").value;
+	alert(name+pass);
+	var data={"name":name,"pass":pass};
+	var jsondata=JSON.stringify(data);
+
+	send("sendjson",function(){
+		if(xmlHttpObject.readyState==4 && xmlHttpObject.status==200){
+			document.getElementById("myDiv").innerHTML=xmlHttpObject.responseText;
+		}
+	},jsondata);
+}
+</script>
+</head>
+
+<body>
+	<h1>fastjson send data</h1>
+	<div>
+	<form >
+		<table>
+			<tbody>
+				<tr>
+					<td>name:</td>
+					<td><input name="name" id="name"></td>
+				</tr>
+				<tr>
+					<td>pass:</td>
+					<td><input name="pass" id="pass"></td>
+				</tr>
+
+				<tr>
+					<td>&nbsp;</td>
+					<td><button type="button" onclick="sendFormByJson()">发送json</button></td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+	</div>
+	<div id="myDiv">
+		<h2>将使用获取Java返回内容改写本处,回调，返回string</h2>
+	</div>
+
+</body>
+</html>

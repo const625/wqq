@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+	<head>
+		<meta charset="UTF-8">
+		<title>商品列表</title>
+		<meta name="renderer" content="webkit">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport"
+			content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+
+
+		<link rel="stylesheet" type="text/css" href="lib/bootstrap/css/bootstrap.css" />
+		<link rel="stylesheet" type="text/css" href="lib/bootstrap/css/bootstrap-table.min.css" />
+		<script src="js/jquery-3.4.1.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/bootstrap/js/bootstrap.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/bootstrap/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="lib/bootstrap/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+
+		<script type="text/javascript">
+			$(function() {
+				/* 显示数据、模糊查询 */
+				$("#product_table").bootstrapTable({
+					url: "../product/queryAll",
+					pagination: true,
+					pageSize: 5,
+					striped: true,
+					//client:客户端分页
+					sidePagination: 'client',
+					height: 400,
+					queryParams: function() {
+						return {
+							productname: $("#sel_pname").val(),
+						}
+					},
+					columns: [{
+						// 映射json对象里的属性
+						field: 'pid',
+						// 文字居中
+						align: 'center',
+						// 列标题
+						title: '商品编号'
+					}, {
+						field: 'productname',
+						align: 'center',
+						title: '商品名称'
+					}, {
+						field: 'price',
+						align: 'center',
+						title: '单价'
+					}, {
+						field: 'quantity',
+						align: 'center',
+						title: '库存数量'
+					}, {
+						field: 'address',
+						align: 'center',
+						title: '发货地'
+					}, {
+						// 映射json对象里的属性
+						field: 'eid',
+						// 文字居中
+						align: 'center',
+						// 列标题
+						title: '操作',
+						formatter: function(value, row, index) { //自定义组件
+							// value 当前列的值
+							// row  整行数据
+							//index 行的下标
+							//return 本列需要显示的内容
+							return '<button type="button" class="btn btn-outline-primary btn-sm" onclick="updateProduct('+row.pid+')">修改</button>&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-outline-danger btn-sm" onclick="delProduct('+row.pid+')" >删除</button>'
+						}
+					}]
+				})
+				/* 点击查询刷新表格 */
+				$("#sel_btn").click(function() {
+					$("#product_table").bootstrapTable('refresh');
+				})
+				
+				//修改
+				var btn_update=$("#btn_update");
+				btn_update.click(function(){
+					var form_update=$("#form_update").serialize();
+				    console.log(form_update);
+					$.ajax({
+					    type: "post",
+					    url: "../product/update",
+						data: form_update,
+					    dataType: "json",
+					    success: function (data) {
+				            $("#updateModal").modal('hide');
+							$("#product_table").bootstrapTable('refresh');
+					    }
+					});
+				})
+				
+				//商品入库
+				$("#btn_add").click(function () {
+				    var form_add=$("#form_add").serialize();
+					var price=$("#price_add").val();
+					//数字
+					var reg = /^[0-9]*$/;
+					if (reg.test(price)!=true) {
+						alert("价格只能是数字")
+					}else{
+						$.ajax({
+						    type: "post",
+						    url: "../product/insert",
+						    data: form_add,
+						    dataType: "json",
+						    success: function (data) {
+						        $("#addModal").modal('hide');
+						        $("#product_table").bootstrapTable('refresh');
+								alert("入库成功");
+						    }
+						});
+					}
+				})
+				$("#add_btn").click(function(){
+					$("#addModal").modal('show');
+				})
+			})
+			//---------------------------------------------------------------------------------
+			
+			//删除商品
+			function delProduct(pid) {
+			    var isDel = confirm("确定删除吗？");
+			    if (isDel == true) {
+			        $.ajax({
+			            type: "post",
+			            url: "../product/deleteById?pid=" + pid,
+			            dataType: "json",
+			            success: function (data) {
+							if(data!=null){
+								$("#product_table").bootstrapTable('refresh');
+								alert("删除成功");
+							}else{
+								alert("删除失败");
+							}
+							
+			            }
+			        });
+			    }
+			}
+			//修改时回显数据
+			function updateProduct(pid) {
+			    var pid_update = $("#pid_update");
+			    var productname_update = $("#productname_update");
+			    var price_update = $("#price_update");
+			    var quantity_update = $("#quantity_update");
+			    var address_update = $("#address_update");
+			    $("#updateModal").modal('show');
+			    //alert(did);
+			    //alert(dname_update+"  "+tel_update);
+			    $.ajax({
+			        type: "post",
+			        url: "../product/queryById?pid=" + pid,
+			        dataType: "json",
+			        success: function (data) {
+						pid_update.val(pid);
+			            productname_update.val(data.productname);
+			            price_update.val(data.price);
+			            quantity_update.val(data.quantity);
+			            address_update.val(data.address);
+			        }
+			    });
+			}
+			
+			//销售商品
+			function saleProduct(pid){
+				var count=prompt("请输入售出的商品数量");
+				console.log(count+"---"+pid);
+				var uid=1;
+				$.ajax({
+				    type: "post",
+				    url: "../sale/insert",
+					data: "pid="+pid+"&uid="+uid+"&count="+count,
+				    dataType: "json",
+				    success: function (data) {
+						location.reload();
+				    }
+				});
+			}
+		</script>
+	</head>
+
+	<body>
+
+		<!-- 查询 -->
+		<p align="center">
+			<input type="text" id="sel_pname" placeholder="请输入商品名称" />
+			<button type="button" id="sel_btn" class="btn btn-success btn-smu">查询</button>
+		</p>
+		<!-- 商品入库 -->
+		<p align="right">
+			<button type="button" id="add_btn" class="btn btn-primary btn-smu">添加商品</button>
+		</p>
+
+		<!-- 展示商品 -->
+		<div class="container">
+			<table id="product_table">
+			</table>
+		</div>
+		
+		
+		<!-- Modal -->
+		<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		    <div class="modal-dialog">
+		        <div class="modal-content">
+					
+		            <div class="modal-header"><!-- 头 -->
+		                <h5 class="modal-title" id="exampleModalLabel">修改商品</h5>
+		                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		                    <span aria-hidden="true">&times;</span>
+		                </button>
+		            </div>
+		            <div class="modal-body"><!-- 体 -->
+		<!-- 				<input type="hidden" id="did" /> -->
+		                <form id="form_update"><!-- 表单 -->
+							<div class="form-group row">
+							    <label for="dname_update" class="col-sm-2 col-form-label">商品编号</label>
+							    <div class="col-sm-10">
+							        <input type="text" class="form-control" readonly name="pid" id="pid_update">
+							    </div>
+							</div>
+		                    <div class="form-group row">
+		                        <label for="dname_update" class="col-sm-2 col-form-label">商品名称</label>
+		                        <div class="col-sm-10">
+		                            <input type="text" class="form-control" name="productname" id="productname_update">
+		                        </div>
+		                    </div>
+							<div class="form-group row">
+							    <label for="dname_update" class="col-sm-2 col-form-label">单价</label>
+							    <div class="col-sm-10">
+							        <input type="text" class="form-control" name="price" id="price_update">
+							    </div>
+							</div>
+		                    <div class="form-group row">
+		                        <label for="tel_update" class="col-sm-2 col-form-label">库存数量</label>
+		                        <div class="col-sm-10">
+		                            <input type="text" class="form-control" name="quantity" id="quantity_update">
+		                        </div>
+		                    </div>
+							<div class="form-group row">
+							    <label for="tel_update" class="col-sm-2 col-form-label">发货地</label>
+							    <div class="col-sm-10">
+							        <input type="text" class="form-control" name="address" id="address_update">
+							    </div>
+							</div>
+		                </form>
+		            </div>
+		            <div class="modal-footer"><!-- 尾 -->
+		                <button type="button" id="btn_update" class="btn btn-primary">保存</button>
+		            </div>
+					
+		        </div>
+		    </div>
+		</div>
+		
+		
+		<!-- 增加--Modal -->
+		<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		    <div class="modal-dialog">
+		        <div class="modal-content">
+					
+		            <div class="modal-header"><!-- 头 -->
+		                <h5 class="modal-title" id="exampleModalLabel">添加商品</h5>
+		                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		                    <span aria-hidden="true">&times;</span>
+		                </button>
+		            </div>
+		            <div class="modal-body"><!-- 体 -->
+		<!-- 				<input type="hidden" id="did" /> -->
+		                <form id="form_add"><!-- 表单 -->
+		                    <div class="form-group row">
+		                        <label for="dname_update" class="col-sm-2 col-form-label">商品名称</label>
+		                        <div class="col-sm-10">
+		                            <input type="text" class="form-control" name="productname" id="productname_add" placeholder="请输入商品名称">
+		                        </div>
+		                    </div>
+							<div class="form-group row">
+							    <label for="dname_update" class="col-sm-2 col-form-label">单价</label>
+							    <div class="col-sm-10">
+							        <input type="text" class="form-control" name="price" id="price_add" placeholder="请输入产品单价">
+							    </div>
+							</div>
+		                    <div class="form-group row">
+		                        <label for="tel_update" class="col-sm-2 col-form-label">库存数量</label>
+		                        <div class="col-sm-10">
+		                            <input type="text" class="form-control" name="quantity" id="quantity_add" placeholder="请输入产品库存数量">
+		                        </div>
+		                    </div>
+							<div class="form-group row">
+							    <label for="tel_update" class="col-sm-2 col-form-label">发货地</label>
+							    <div class="col-sm-10">
+							        <input type="text" class="form-control" name="address" id="address_add" placeholder="请输入产品发货地">
+							    </div>
+							</div>
+		                </form>
+		            </div>
+		            <div class="modal-footer"><!-- 尾 -->
+		                <button type="button" id="btn_add" class="btn btn-primary">保存</button>
+		            </div>
+					
+		        </div>
+		    </div>
+		</div>
+	</body>
+</html>

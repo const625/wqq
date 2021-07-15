@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.simon.dao.ProductDao">
+
+    <resultMap id="BaseResultMap" type="com.simon.entity.Product">
+        <!--@Table product-->
+        <result property="pid" column="pid" jdbcType="INTEGER"/>
+        <result property="productname" column="productName" jdbcType="VARCHAR"/>
+        <result property="quantity" column="quantity" jdbcType="INTEGER"/>
+        <result property="address" column="address" jdbcType="VARCHAR"/>
+        <result property="price" column="price" jdbcType="NUMERIC"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="BaseResultMap">
+        select
+          pid, productName, quantity, address, price
+        from jxcproject.product
+        where pid = #{pid}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="BaseResultMap">
+        select
+          pid, productName, quantity, address, price
+        from jxcproject.product
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="BaseResultMap">
+        select
+          pid, productName, quantity, address, price
+        from jxcproject.product
+        <where>
+            <if test="pid != null">
+                and pid = #{pid}
+            </if>
+            <if test="productname != null and productname != ''">
+                and productName like concat(concat('%',#{productname},'%'))
+            </if>
+            <if test="quantity != null">
+                and quantity = #{quantity}
+            </if>
+            <if test="address != null and address != ''">
+                and address = #{address}
+            </if>
+            <if test="price != null">
+                and price = #{price}
+            </if>
+        </where>
+    </select>
+    <select id="queryByPname" resultType="com.simon.entity.Product">
+    select * from dept where dname like concat(concat('%',#{productname},'%'))
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="pid" useGeneratedKeys="true">
+        insert into jxcproject.product(productName, quantity, address, price)
+        values (#{productname}, #{quantity}, #{address}, #{price})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update jxcproject.product
+        <set>
+            <if test="productname != null and productname != ''">
+                productName = #{productname},
+            </if>
+            <if test="quantity != null">
+                quantity = #{quantity},
+            </if>
+            <if test="address != null and address != ''">
+                address = #{address},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+        </set>
+        where pid = #{pid}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from jxcproject.product where pid = #{pid}
+    </delete>
+
+</mapper>

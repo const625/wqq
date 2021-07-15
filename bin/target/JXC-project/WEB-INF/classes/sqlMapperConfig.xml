@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--将mapper中的sql语句注册到mybatis中-->
+    <mappers>
+        <!--对应XML方式-->
+        <mapper resource="mapper/UsersDao.xml"/>
+        <mapper resource="mapper/ProductDao.xml"/>
+        <mapper resource="mapper/SaleDao.xml"/>
+    </mappers>
+</configuration>
